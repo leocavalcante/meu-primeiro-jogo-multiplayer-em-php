@@ -2,7 +2,9 @@
 
 namespace App\Message;
 
-abstract class Message implements \JsonSerializable
+use JsonSerializable;
+
+abstract class OutMessage implements JsonSerializable
 {
     /** @var string */
     private $type;

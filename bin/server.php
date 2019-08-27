@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Message\Bootstrap;
+use App\Message\PlayerMove;
 use App\Message\PlayerUpdate;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -37,8 +38,9 @@ $server->on('message', function (Server $server,  Frame $frame) use ($game) {
     $message = json_decode($frame->data, true);
 
     switch ($message['type']) {
-        case 'player-move':
-            $player = $game->movePlayer($frame->fd, $message['payload']);
+        case PlayerMove::getType():
+            $message = PlayerMove::parse($message);
+            $player = $game->getPlayerById($frame->fd)->move($message->getDirection());
             $game->emit(new PlayerUpdate($player), $frame->fd);
             break;
     }

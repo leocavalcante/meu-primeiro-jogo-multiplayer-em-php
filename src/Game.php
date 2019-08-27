@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Message\Message;
+use App\Message\OutMessage;
 use Swoole\WebSocket\Server;
 
 class Game
@@ -42,12 +42,7 @@ class Game
         unset($this->players[$fd]);
     }
 
-    public function close(int $fd)
-    {
-        $this->server->close($fd);
-    }
-
-    public function emit(Message $message, int $broadcast = 0): self
+    public function emit(OutMessage $message, int $broadcast = 0): self
     {
         foreach ($this->server->connections as $connection) {
             if ($connection === $broadcast) {
@@ -92,5 +87,10 @@ class Game
     public function getServer(): Server
     {
         return $this->server;
+    }
+
+    public function getPlayerById(int $id): Player
+    {
+        return $this->players[$id];
     }
 }

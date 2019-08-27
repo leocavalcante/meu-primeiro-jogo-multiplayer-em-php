@@ -2,7 +2,9 @@
 
 namespace App;
 
-class Player implements \JsonSerializable
+use JsonSerializable;
+
+class Player implements JsonSerializable
 {
     /** @var Game */
     private $game;
@@ -28,7 +30,7 @@ class Player implements \JsonSerializable
         $this->y = $y;
     }
 
-    public function move(string $direction)
+    public function move(string $direction): self
     {
         switch ($direction) {
             case 'left':
@@ -56,6 +58,8 @@ class Player implements \JsonSerializable
                 }
                 break;
         }
+
+        return $this;
     }
 
     public function jsonSerialize()

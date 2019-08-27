@@ -4,7 +4,7 @@ namespace App\Message;
 
 use App\Game;
 
-class Bootstrap extends Message
+class Bootstrap extends OutMessage
 {
     /** @var int */
     private $fd;

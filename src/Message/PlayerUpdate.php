@@ -4,7 +4,7 @@ namespace App\Message;
 
 use App\Player;
 
-class PlayerUpdate extends Message
+class PlayerUpdate extends OutMessage
 {
     /** @var Player */
     private $player;
