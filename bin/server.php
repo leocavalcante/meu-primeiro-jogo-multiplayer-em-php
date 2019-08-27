@@ -23,22 +23,14 @@ $game = new Game($server);
 $server->on('open', function (Server $server, Request $request) use ($max_connections, $game) {
     if (count($server->connections) >= $max_connections) {
         $server->close($request->fd);
+        return;
     }
 
-    $add_player_result = $game->addPlayer($request->fd);
+    $player = new Player($game, $request->fd);
 
-    if ($add_player_result instanceof Failure) {
-        $server->close($request->fd);
-        echo $add_player_result->getMessage(), PHP_EOL;
-    }
-
-    if ($add_player_result instanceof Success) {
-        /** @var Player $player */
-        $player = $add_player_result->unwrap();
-
-        $game->emit(new Bootstrap($request->fd, $game));
-        $game->emit(new PlayerUpdate($player), $request->fd);
-    }
+    $game->addPlayer($player)
+        ->emit(new Bootstrap($request->fd, $game))
+        ->emit(new PlayerUpdate($player), $request->fd);
 });
 
 $server->on('message', function (Server $server,  Frame $frame) use ($game) {

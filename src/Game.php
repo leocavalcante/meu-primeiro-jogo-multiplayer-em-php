@@ -31,11 +31,10 @@ class Game
         $this->maxConnections = $maxConnections;
     }
 
-    public function addPlayer(int $fd): Result
+    public function addPlayer(Player $player): self
     {
-        // TODO: Initial random positions
-        $this->players[$fd] = new Player($this, $fd);
-        return new Success($this->players[$fd]);
+        $this->players[$player->getId()] = $player;
+        return $this;
     }
 
     public function removePlayer(int $fd)
@@ -48,7 +47,7 @@ class Game
         $this->server->close($fd);
     }
 
-    public function emit(Message $message, int $broadcast = 0)
+    public function emit(Message $message, int $broadcast = 0): self
     {
         foreach ($this->server->connections as $connection) {
             if ($connection === $broadcast) {
@@ -59,6 +58,8 @@ class Game
             // FIXME: The connection isn't always a WebSocket client
             @$this->server->push($connection, json_encode($message));
         }
+
+        return $this;
     }
 
     public function getCanvasWidth(): int
