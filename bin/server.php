@@ -6,6 +6,8 @@ use App\Message\Bootstrap;
 use App\Message\PlayerMove;
 use App\Message\PlayerUpdate;
 use App\Message\StartGame;
+use App\Message\StopGame;
+use Dotenv\Dotenv;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 use Swoole\Server\Port;
@@ -14,6 +16,8 @@ use Swoole\WebSocket\Server;
 
 $basedir = __DIR__ . "/..";
 require_once "$basedir/vendor/autoload.php";
+
+Dotenv::create($basedir)->load();
 
 $max_connections = isset($argv[1]) ? intval($argv[1]) : 10;
 
@@ -48,6 +52,12 @@ $server->on('message', function (Server $server, Frame $frame) use ($game) {
         case StartGame::getType():
             $message = StartGame::parse($message);
             $game->start($message->getInterval());
+            break;
+
+
+        case StopGame::getType():
+            $message = StopGame::parse($message);
+            $game->stop();
             break;
 
 //          TODO
@@ -90,7 +100,7 @@ $http->on('request', function (Request $request, Response $response) use ($based
             $response->sendfile("$basedir/res/game.html");
             break;
 
-        case '/a31ecc0596d72f84e5ee403ddcacb3dea94ce0803fc9e6dc2eca1fbabae49a3e3a31ecc0596d72f84e5ee40d0cacb3dea94ce0803fc9e6dc2ecfdfdbabae49a3e3':
+        case '/' . getenv('ADMIN_KEY'):
             $game_html = file_get_contents("$basedir/res/game.html");
             $admin_html = file_get_contents("$basedir/res/game-admin.html");
             $game_html = str_replace('<!-- admin -->', $admin_html, $game_html);

@@ -4,7 +4,9 @@
     "type": "project",
     "require": {
         "php": ">=7.3",
-        "ext-swoole": "^4.4"
+        "ext-json": "*",
+        "ext-swoole": "^4.4",
+        "vlucas/phpdotenv": "^3.5"
     },
     "require-dev": {
         "swoole/ide-helper": "^4.4"
