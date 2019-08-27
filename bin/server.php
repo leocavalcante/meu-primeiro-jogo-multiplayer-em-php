@@ -17,11 +17,15 @@ use Swoole\WebSocket\Server;
 $basedir = __DIR__ . "/..";
 require_once "$basedir/vendor/autoload.php";
 
-Dotenv::create($basedir)->load();
+if (file_exists("$basedir/.env")) {
+    Dotenv::create($basedir)->load();
+}
 
 $max_connections = isset($argv[1]) ? intval($argv[1]) : 10;
+$websocket_port = getenv('WEBSOCKET_PORT') ? intval(getenv('WEBSOCKET_PORT')) : 9001;
+$http_port = getenv('HTTP_PORT') ? intval(getenv('HTTP_PORT')) : 9000;
 
-$server = new Server('0.0.0.0', 9001);
+$server = new Server('0.0.0.0', $websocket_port);
 $server->set(['worker_num' => 1]);
 
 $game = new Game($server);
@@ -92,7 +96,7 @@ $server->on('close', function (Server $server, int $fd) use ($game) {
 });
 
 /** @var Port $http */
-$http = $server->listen('0.0.0.0', 9000, SWOOLE_SOCK_TCP);
+$http = $server->listen('0.0.0.0', $http_port, SWOOLE_SOCK_TCP);
 $http->set(['open_http_protocol' => true]);
 $http->on('request', function (Request $request, Response $response) use ($basedir) {
     switch ($request->server['request_uri']) {
