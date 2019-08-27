@@ -14,7 +14,7 @@ abstract class OutMessage implements JsonSerializable
         $this->type = $type;
     }
 
-    abstract function getPayload(): array;
+    abstract function getPayload();
 
     public function jsonSerialize()
     {

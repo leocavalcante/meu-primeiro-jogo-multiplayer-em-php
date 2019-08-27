@@ -2,7 +2,11 @@
 
 namespace App;
 
+use App\Message\FruitAdded;
+use App\Message\FruitRemoved;
 use App\Message\OutMessage;
+use App\Message\UpdatePlayerScore;
+use Swoole\Timer;
 use Swoole\WebSocket\Server;
 
 class Game
@@ -24,6 +28,9 @@ class Game
 
     /** @var array */
     private $fruits = [];
+
+    /** @var int */
+    private $tick;
 
     public function __construct(Server $server, int $maxConnections = 10)
     {
@@ -77,20 +84,48 @@ class Game
         ];
     }
 
-    public function movePlayer(int $fd, $payload): Player
-    {
-        $player = $this->players[$fd];
-        $player->move($payload);
-        return $player;
-    }
-
-    public function getServer(): Server
-    {
-        return $this->server;
-    }
-
     public function getPlayerById(int $id): Player
     {
         return $this->players[$id];
+    }
+
+    public function start(int $interval)
+    {
+        Timer::clear($this->tick);
+        $this->tick = $this->server->tick($interval, [$this, 'onTick']);
+    }
+
+    public function onTick()
+    {
+        $fruit = new Fruit($this->randomPosition());
+        $this->fruits[$fruit->getId()] = $fruit;
+        $this->emit(new FruitAdded($fruit));
+    }
+
+    public function checkForCollisions(): self
+    {
+        // TODO: A better algo
+        foreach ($this->players as $player) {
+            foreach ($this->fruits as $fruit) {
+                if ($player->hits($fruit)) {
+                    $player->scores();
+                    $this->removeFruit($fruit);
+                    $this->emit(new FruitRemoved($fruit));
+                    $this->emit(new UpdatePlayerScore($player));
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    private function removeFruit(Fruit $fruit)
+    {
+        unset($this->fruits[$fruit->getId()]);
+    }
+
+    public function randomPosition(): Point2D
+    {
+        return new Point2D(rand(0, $this->getCanvasWidth()), rand(0, $this->getCanvasHeight()));
     }
 }

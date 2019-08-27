@@ -6,6 +6,7 @@ use JsonSerializable;
 
 class Player implements JsonSerializable
 {
+
     /** @var Game */
     private $game;
 
@@ -15,46 +16,42 @@ class Player implements JsonSerializable
     /** @var int */
     private $score;
 
-    /** @var int */
-    private $x;
+    /** @var Point2D */
+    private $position;
 
-    /** @var int */
-    private $y;
-
-    public function __construct(Game $game, int $id, int $x = 0, int $y = 0)
+    public function __construct(Game $game, int $id, Point2D $position)
     {
         $this->game = $game;
         $this->id = $id;
         $this->score = 0;
-        $this->x = $x;
-        $this->y = $y;
+        $this->position = $position;
     }
 
     public function move(string $direction): self
     {
         switch ($direction) {
             case 'left':
-                if ($this->x - 1 >= 0) {
-                    $this->x -= 1;
+                if ($this->position->getX() - 1 >= 0) {
+                    $this->position->decreaseX();
                 }
                 break;
 
             case 'up':
-                if ($this->y - 1 >= 0) {
-                    $this->y -= 1;
+                if ($this->position->getY() - 1 >= 0) {
+                    $this->position->decreaseY();
                 }
                 break;
 
             case 'right':
-                if ($this->x + 1 < $this->game->getCanvasWidth()) {
-                    $this->x += 1;
+                if ($this->position->getX() + 1 < $this->game->getCanvasWidth()) {
+                    $this->position->increaseX();
 
                 }
                 break;
 
             case 'down':
-                if ($this->y + 1 < $this->game->getCanvasHeight()) {
-                    $this->y += 1;
+                if ($this->position->getY() + 1 < $this->game->getCanvasHeight()) {
+                    $this->position->increaseY();
                 }
                 break;
         }
@@ -66,13 +63,28 @@ class Player implements JsonSerializable
     {
         return [
             'score' => $this->score,
-            'x' => $this->x,
-            'y' => $this->y,
+            'x' => $this->position->getX(),
+            'y' => $this->position->getY(),
         ];
     }
 
     public function getId(): int
     {
         return $this->id;
+    }
+
+    public function scores()
+    {
+        $this->score += 1;
+    }
+
+    public function getScore(): int
+    {
+        return $this->score;
+    }
+
+    public function hits(Fruit $fruit): bool
+    {
+        return $this->position->overlaps($fruit->getPosition());
     }
 }
