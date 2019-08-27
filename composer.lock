@@ -1,0 +1,53 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "df49097bf9dd5670425ecfedfd3a620b",
+    "packages": [],
+    "packages-dev": [
+        {
+            "name": "swoole/ide-helper",
+            "version": "4.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/swoole/ide-helper.git",
+                "reference": "9493a89afa6d05175d14c58c5ff7ee36e85fd5cd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/9493a89afa6d05175d14c58c5ff7ee36e85fd5cd",
+                "reference": "9493a89afa6d05175d14c58c5ff7ee36e85fd5cd",
+                "shasum": ""
+            },
+            "require-dev": {
+                "squizlabs/php_codesniffer": "~3.4.0",
+                "zendframework/zend-code": "~3.3.0"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Team Swoole",
+                    "email": "team@swoole.com"
+                }
+            ],
+            "description": "IDE help files for Swoole.",
+            "time": "2019-08-19T20:56:30+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=7.3",
+        "ext-swoole": "^4.4"
+    },
+    "platform-dev": []
+}

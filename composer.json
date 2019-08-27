@@ -1,0 +1,25 @@
+{
+    "name": "leocavalcante/meu-primeiro-jogo-multiplayer-em-php",
+    "description": "Um jogo multiplayer bastante simples para testarmos a Swoole.",
+    "type": "project",
+    "require": {
+        "php": ">=7.3",
+        "ext-swoole": "^4.4"
+    },
+    "require-dev": {
+        "swoole/ide-helper": "^4.4"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "leocavalcante",
+            "email": "lc@leocavalcante.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}

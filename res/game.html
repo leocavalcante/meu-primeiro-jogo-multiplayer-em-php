@@ -5,8 +5,6 @@
         <meta http-equiv="Expires" content="0" />
         <meta charset="utf-8">
         <title>Meu Primeiro Jogo Multiplayer</title>
-        <script src="/socket.io/socket.io.js"></script>
-
         <style>
             body {
                 margin: 40px 0 0 0;
@@ -104,144 +102,153 @@
 
         <script>
             let connected = false
-            const socket = io({
-                reconnectionDelay: 10000,
-                reconnectionDelayMax: 15000
-            })
+            const socket = new WebSocket('ws://localhost:9001')
             let game
             const scoreTable = document.getElementById('score-table')
             const gameCanvas = document.getElementById('game-canvas')
             let totalPlayersCount = ''
             const collectFruitAudio = new Audio('collect.mp3')
             const collect100FruitAudio = new Audio('100-collect.mp3')
-            
-            socket.on('connect', () => {
+
+            socket.onopen = () => {
                 connected = true
                 console.log('> Connected to server')
-            })
+            }
 
-            socket.on('disconnect', () => {
+            socket.onclose = () => {
                 console.log('> Disconnected')
                 connected = false
-            })
+            }
 
-            socket.on('bootstrap', (gameInitialState) => {
-                game = gameInitialState
-                console.log('> Received initial state')
-                gameCanvas.style.width = `${game.canvasWidth * 18}px`
-                gameCanvas.style.height = `${game.canvasHeight * 18}px`
-                gameCanvas.width = game.canvasWidth
-                gameCanvas.height = game.canvasHeight
-
-                const context = gameCanvas.getContext('2d')
-
-                requestAnimationFrame(renderGame)
-
-                function renderGame() {
-                    const allPixels = game.canvasWidth * game.canvasHeight
-                    
-                    context.globalAlpha = 1
-                    context.fillStyle = 'white'
-                    context.fillRect(0, 0, game.canvasWidth, game.canvasHeight)
-
-                    for (const socketId in game.players) {
-                        const player = game.players[socketId]
-                        context.fillStyle = '#000000'
-                        context.globalAlpha = 0.1
-                        context.fillRect(player.x, player.y, 1, 1)
-                    }
-
-                    for (const fruitId in game.fruits) {
-                        const fruit = game.fruits[fruitId]
-                        context.fillStyle = '#08a331'
-                        context.globalAlpha = 1
-                        context.fillRect(fruit.x, fruit.y, 1, 1)
-                    }
-
-                    const currentPlayer = game.players[socket.id]
-                    context.fillStyle = '#F0DB4F'
-                    context.globalAlpha = 1
-                    context.fillRect(currentPlayer.x, currentPlayer.y, 1, 1)
-
-
-                    requestAnimationFrame(renderGame)
+            socket.onmessage = message => {
+                const data = JSON.parse(message.data)
+                if (handlers.hasOwnProperty(data.type)) {
+                    handlers[data.type](data.payload)
                 }
-
-                updateScoreTable()
-            })
-
-            socket.on('player-update', (player) => {
-                game.players[player.socketId] = player.newState
-            })
-
-            socket.on('update-player-score', (score) => {
-                game.players[socket.id].score = score
-                updateScoreTable()
-            })
-
-            socket.on('player-remove', (socketId) => {
-                delete game.players[socketId]
-            })
-
-            socket.on('fruit-add', (fruit) => {
-                game.fruits[fruit.fruitId] = {
-                    x: fruit.x,
-                    y: fruit.y
-                }
-            })
-
-            socket.on('fruit-remove', ({fruitId, score}) => {
-                delete game.fruits[fruitId]
-                multipleOf100Remainder = score % 100
-
-                if (multipleOf100Remainder !== 0) {
-                    collectFruitAudio.pause()
-                    collectFruitAudio.currentTime = 0
-                    collectFruitAudio.play()
-                }
-
-                if (multipleOf100Remainder === 0 && score !== 0) {
-                    collectFruitAudio.pause()
-                    collect100FruitAudio.pause()
-                    collect100FruitAudio.currentTime = 0
-                    collect100FruitAudio.play()
-                }
-
-                updateScoreTable()
-            })
-
-            socket.on('concurrent-connections', (concurrentConnections) => {
-                totalPlayersCount = concurrentConnections
-                updateScoreTable()
-            })
+            }
 
             let crazyModeInterval
-            socket.on('start-crazy-mode', () => {
-                crazyModeInterval = setInterval(() => {
-                    const randomKey = 37 + Math.floor(Math.random()*4)
-                    console.log(randomKey)
-                    const event = new KeyboardEvent('keydown', {
-                        keyCode: randomKey,
-                        which: randomKey
-                    })
+            const handlers = {
+                ['bootstrap'](gameInitialState) {
+                    game = gameInitialState
+                    // NOTE: I think that IDs on Socket IO comes from the client
+                    socket.id = socket.id || game.socketId
+                    console.log('> Received initial state')
+                    gameCanvas.style.width = `${game.canvasWidth * 18}px`
+                    gameCanvas.style.height = `${game.canvasHeight * 18}px`
+                    gameCanvas.width = game.canvasWidth
+                    gameCanvas.height = game.canvasHeight
 
-                    document.dispatchEvent(event);
-                }, 150)
-            })
+                    const context = gameCanvas.getContext('2d')
 
-            socket.on('stop-crazy-mode', () => {
-                clearInterval(crazyModeInterval)
-            })
+                    requestAnimationFrame(renderGame)
 
-            socket.on('show-max-concurrent-connections-message', () => {
-                document.getElementById('max-concurrent-connection-message').style.display = 'block'
-                document.getElementById('game-container').style.display = 'none'
-            })
+                    function renderGame() {
+                        const allPixels = game.canvasWidth * game.canvasHeight
 
-            socket.on('hide-max-concurrent-connections-message', () => {
-                document.getElementById('max-concurrent-connection-message').style.display = 'none'
-                document.getElementById('game-container').style.display = 'block'
-            })
+                        context.globalAlpha = 1
+                        context.fillStyle = 'white'
+                        context.fillRect(0, 0, game.canvasWidth, game.canvasHeight)
+
+                        for (const socketId in game.players) {
+                            const player = game.players[socketId]
+                            context.fillStyle = '#000000'
+                            context.globalAlpha = 0.1
+                            context.fillRect(player.x, player.y, 1, 1)
+                        }
+
+                        for (const fruitId in game.fruits) {
+                            const fruit = game.fruits[fruitId]
+                            context.fillStyle = '#08a331'
+                            context.globalAlpha = 1
+                            context.fillRect(fruit.x, fruit.y, 1, 1)
+                        }
+
+                        const currentPlayer = game.players[socket.id]
+                        context.fillStyle = '#F0DB4F'
+                        context.globalAlpha = 1
+                        context.fillRect(currentPlayer.x, currentPlayer.y, 1, 1)
+
+
+                        requestAnimationFrame(renderGame)
+                    }
+
+                    updateScoreTable()
+                },
+
+                ['player-update'](player) {
+                    game.players[player.socketId] = player.newState
+                },
+
+                ['update-player-score'](score) {
+                    game.players[socket.id].score = score
+                    updateScoreTable()
+                },
+
+                ['player-remove'](socketId) {
+                    delete game.players[socketId]
+                },
+
+                ['fruit-add'](fruit) {
+                    game.fruits[fruit.fruitId] = {
+                        x: fruit.x,
+                        y: fruit.y
+                    }
+                },
+
+                ['fruit-remove']({fruitId, score}) {
+                    delete game.fruits[fruitId]
+                    multipleOf100Remainder = score % 100
+
+                    if (multipleOf100Remainder !== 0) {
+                        collectFruitAudio.pause()
+                        collectFruitAudio.currentTime = 0
+                        collectFruitAudio.play()
+                    }
+
+                    if (multipleOf100Remainder === 0 && score !== 0) {
+                        collectFruitAudio.pause()
+                        collect100FruitAudio.pause()
+                        collect100FruitAudio.currentTime = 0
+                        collect100FruitAudio.play()
+                    }
+
+                    updateScoreTable()
+                },
+
+                ['concurrent-connections'](concurrentConnections) {
+                    totalPlayersCount = concurrentConnections
+                    updateScoreTable()
+                },
+
+
+                ['start-crazy-mode']() {
+                    crazyModeInterval = setInterval(() => {
+                        const randomKey = 37 + Math.floor(Math.random()*4)
+                        console.log(randomKey)
+                        const event = new KeyboardEvent('keydown', {
+                            keyCode: randomKey,
+                            which: randomKey
+                        })
+
+                        document.dispatchEvent(event);
+                    }, 150)
+                },
+
+                ['stop-crazy-mode']() {
+                    clearInterval(crazyModeInterval)
+                },
+
+                ['show-max-concurrent-connections-message']() {
+                    document.getElementById('max-concurrent-connection-message').style.display = 'block'
+                    document.getElementById('game-container').style.display = 'none'
+                },
+
+                ['hide-max-concurrent-connections-message']() {
+                    document.getElementById('max-concurrent-connection-message').style.display = 'none'
+                    document.getElementById('game-container').style.display = 'block'
+                },
+            }
 
             function updateScoreTable() {
                 const maxResults = 10
@@ -324,24 +331,24 @@
 
                     if (event.which === 37 && player.x - 1 >= 0) {
                         player.x = player.x - 1
-                        socket.emit('player-move', 'left')
+                        socket.send(JSON.stringify({type: 'player-move', payload: 'left'}));
                         return
                     }
 
                     if (event.which === 38 && player.y - 1 >= 0) {
                         player.y = player.y - 1
-                        socket.emit('player-move', 'up')
+                        socket.send(JSON.stringify({type: 'player-move', payload: 'up'}))
                         return
                     }
 
                     if (event.which === 39 && player.x + 1 < game.canvasWidth) {
                         player.x = player.x + 1
-                        socket.emit('player-move', 'right')
+                        socket.send(JSON.stringify({type: 'player-move', payload: 'right'}))
                         return
                     }
                     if (event.which === 40 && player.y + 1 < game.canvasHeight) {
                         player.y = player.y + 1
-                        socket.emit('player-move', 'down')
+                        socket.send(JSON.stringify({type: 'player-move', payload: 'down'}))
                         return
                     }
                 }
