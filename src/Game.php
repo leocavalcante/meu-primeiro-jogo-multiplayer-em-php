@@ -33,11 +33,6 @@ class Game
 
     public function addPlayer(int $fd): Result
     {
-
-        if (count($this->server->connections) >= $this->maxConnections) {
-            return new Failure('Connections limit reached');
-        }
-
         // TODO: Initial random positions
         $this->players[$fd] = new Player($this, $fd);
         return new Success($this->players[$fd]);

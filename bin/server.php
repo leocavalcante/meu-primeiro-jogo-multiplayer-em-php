@@ -13,12 +13,18 @@ use Swoole\WebSocket\Server;
 $basedir = __DIR__ . "/..";
 require_once "$basedir/vendor/autoload.php";
 
+$max_connections = isset($argv[1]) ? intval($argv[1]) : 10;
+
 $server = new Server('0.0.0.0', 9001);
 $server->set(['worker_num' => 1]);
 
 $game = new Game($server);
 
-$server->on('open', function (Server $server, Request $request) use ($game) {
+$server->on('open', function (Server $server, Request $request) use ($max_connections, $game) {
+    if (count($server->connections) >= $max_connections) {
+        $server->close($request->fd);
+    }
+
     $add_player_result = $game->addPlayer($request->fd);
 
     if ($add_player_result instanceof Failure) {
