@@ -128,4 +128,9 @@ class Game
     {
         return new Point2D(rand(0, $this->getCanvasWidth()), rand(0, $this->getCanvasHeight()));
     }
+
+    public function stop()
+    {
+        Timer::clear($this->tick);
+    }
 }
