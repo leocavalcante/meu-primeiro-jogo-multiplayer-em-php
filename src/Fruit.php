@@ -9,10 +9,10 @@ class Fruit implements JsonSerializable
     /** @var string */
     private $id;
 
-    /** @var Point2D */
+    /** @var Point */
     private $position;
 
-    public function __construct(Point2D $position)
+    public function __construct(Point $position)
     {
         $this->id = uniqid(); //FIXME: Maybe a better algo
         $this->position = $position;
@@ -32,7 +32,7 @@ class Fruit implements JsonSerializable
         return $this->id;
     }
 
-    public function getPosition(): Point2D
+    public function getPosition(): Point
     {
         return $this->position;
     }

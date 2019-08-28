@@ -141,9 +141,9 @@ class Game
         unset($this->fruits[$fruit->getId()]);
     }
 
-    public function randomPosition(): Point2D
+    public function randomPosition(): Point
     {
-        return new Point2D(rand(0, $this->getWidth()), rand(0, $this->getHeight()));
+        return new Point(rand(0, $this->getWidth()), rand(0, $this->getHeight()));
     }
 
     public function stop()

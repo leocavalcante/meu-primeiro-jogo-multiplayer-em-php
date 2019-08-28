@@ -16,10 +16,10 @@ class Player implements JsonSerializable
     /** @var int */
     private $score;
 
-    /** @var Point2D */
+    /** @var Point */
     private $position;
 
-    public function __construct(Game $game, int $id, Point2D $position)
+    public function __construct(Game $game, int $id, Point $position)
     {
         $this->game = $game;
         $this->id = $id;
@@ -32,26 +32,26 @@ class Player implements JsonSerializable
         switch ($direction) {
             case 'left':
                 if ($this->position->getX() - 1 >= 0) {
-                    $this->position->decreaseX();
+                    $this->position->decX();
                 }
                 break;
 
             case 'up':
                 if ($this->position->getY() - 1 >= 0) {
-                    $this->position->decreaseY();
+                    $this->position->decY();
                 }
                 break;
 
             case 'right':
                 if ($this->position->getX() + 1 < $this->game->getWidth()) {
-                    $this->position->increaseX();
+                    $this->position->incX();
 
                 }
                 break;
 
             case 'down':
                 if ($this->position->getY() + 1 < $this->game->getHeight()) {
-                    $this->position->increaseY();
+                    $this->position->incY();
                 }
                 break;
         }

@@ -71,7 +71,7 @@ $server->on('open', function (Server $server, Request $request) use ($game) {
         return;
     }
 
-    $player = new Player($game, $request->fd, new Point2D());
+    $player = new Player($game, $request->fd, new Point());
 
     $game
         ->addPlayer($player)

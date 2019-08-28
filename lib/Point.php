@@ -2,7 +2,7 @@
 
 namespace App;
 
-class Point2D
+class Point
 {
     /** @var int */
     private $x;
@@ -15,6 +15,11 @@ class Point2D
         $this->y = $y;
     }
 
+    public function overlaps(Point $point): bool
+    {
+        return ($this->x === $point->x) && ($this->y === $point->y);
+    }
+
     public function getX(): int
     {
         return $this->x;
@@ -25,27 +30,22 @@ class Point2D
         return $this->y;
     }
 
-    public function overlaps(Point2D $point): bool
-    {
-        return ($this->x === $point->x) && ($this->y === $point->y);
-    }
-
-    public function decreaseX()
+    public function decX()
     {
         $this->x -= 1;
     }
 
-    public function decreaseY()
+    public function decY()
     {
         $this->y -= 1;
     }
 
-    public function increaseX()
+    public function incX()
     {
         $this->x += 1;
     }
 
-    public function increaseY()
+    public function incY()
     {
         $this->y += 1;
     }
