@@ -3,10 +3,14 @@
 namespace App;
 
 use App\Message\Bootstrap;
+use App\Message\LetsGoCrazy;
 use App\Message\PlayerMove;
 use App\Message\PlayerUpdate;
+use App\Message\RestartGame;
+use App\Message\SetMaxConnections;
 use App\Message\StartGame;
 use App\Message\StopGame;
+use App\Message\StopThisMadness;
 use Dotenv\Dotenv;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -21,17 +25,17 @@ if (file_exists("$basedir/.env")) {
     Dotenv::create($basedir)->load();
 }
 
-$max_connections = isset($argv[1]) ? intval($argv[1]) : 10;
+$max_connections = getenv('MAX_CONNECTIONS') ? intval(getenv('MAX_CONNECTIONS')) : 10;
 $websocket_port = getenv('WEBSOCKET_PORT') ? intval(getenv('WEBSOCKET_PORT')) : 9001;
 $http_port = getenv('HTTP_PORT') ? intval(getenv('HTTP_PORT')) : 9000;
 
 $server = new Server('0.0.0.0', $websocket_port);
 $server->set(['worker_num' => 1]);
 
-$game = new Game($server);
+$game = new Game($server, $max_connections);
 
-$server->on('open', function (Server $server, Request $request) use ($max_connections, $game) {
-    if (count($server->connections) >= $max_connections) {
+$server->on('open', function (Server $server, Request $request) use ($game) {
+    if (count($server->connections) >= $game->getMaxConnections()) {
         $server->close($request->fd);
         return;
     }
@@ -58,35 +62,26 @@ $server->on('message', function (Server $server, Frame $frame) use ($game) {
             $game->start($message->getInterval());
             break;
 
-
         case StopGame::getType():
-            $message = StopGame::parse($message);
             $game->stop();
             break;
 
-//          TODO
+        case RestartGame::getType():
+            $game->restart();
+            break;
 
-//          socket.on('admin-stop-fruit-game', () => {
-//                    console.log('> Fruit Game stop')
-//            clearInterval(fruitGameInterval)
-//          })
-//
-//          socket.on('admin-start-crazy-mode', () => {
-//                    io.emit('start-crazy-mode')
-//          })
-//
-//          socket.on('admin-stop-crazy-mode', () => {
-//                    io.emit('stop-crazy-mode')
-//          })
-//
-//          socket.on('admin-clear-scores', () => {
-//                    game.clearScores()
-//            io.emit('bootstrap', game)
-//          })
-//
-//          socket.on('admin-concurrent-connections', (newConcurrentConnections) => {
-//                    maxConcurrentConnections = newConcurrentConnections
-//          })
+        case LetsGoCrazy::getType():
+            $game->letsGoCrazy();
+            break;
+
+        case StopThisMadness::getType():
+            $game->stopThisMadness();
+            break;
+
+        case SetMaxConnections::getType():
+            $message = SetMaxConnections::parse($message);
+            $game->setMaxConnections($message->getValue());
+            break;
 
     }
 });

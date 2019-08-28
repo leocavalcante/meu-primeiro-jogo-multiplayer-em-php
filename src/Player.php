@@ -87,4 +87,9 @@ class Player implements JsonSerializable
     {
         return $this->position->overlaps($fruit->getPosition());
     }
+
+    public function reset()
+    {
+        $this->score = 0;
+    }
 }

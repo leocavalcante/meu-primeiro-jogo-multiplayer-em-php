@@ -2,9 +2,12 @@
 
 namespace App;
 
+use App\Message\Bootstrap;
 use App\Message\FruitAdded;
 use App\Message\FruitRemoved;
 use App\Message\OutMessage;
+use App\Message\StartCrazyMode;
+use App\Message\StopCrazyMode;
 use App\Message\UpdatePlayerScore;
 use Swoole\Timer;
 use Swoole\WebSocket\Server;
@@ -132,5 +135,34 @@ class Game
     public function stop()
     {
         Timer::clear($this->tick);
+    }
+
+    public function getMaxConnections(): int
+    {
+        return $this->maxConnections;
+    }
+
+    public function letsGoCrazy()
+    {
+        $this->emit(new StartCrazyMode());
+    }
+
+    public function stopThisMadness()
+    {
+        $this->emit(new StopCrazyMode());
+    }
+
+    public function restart()
+    {
+        foreach ($this->players as $player) {
+            $player->reset();
+        }
+
+        $this->emit(new Bootstrap(0, $this));
+    }
+
+    public function setMaxConnections(int $maxConnections)
+    {
+        $this->maxConnections = $maxConnections;
     }
 }
