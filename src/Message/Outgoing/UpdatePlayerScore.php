@@ -4,6 +4,7 @@ namespace App\Message\Outgoing;
 
 use App\Message\Outgoing;
 use App\Player;
+use const App\Message\UpdatePlayerScore;
 
 class UpdatePlayerScore extends Outgoing
 {

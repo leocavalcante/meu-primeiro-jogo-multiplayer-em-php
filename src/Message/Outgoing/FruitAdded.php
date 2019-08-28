@@ -4,6 +4,7 @@ namespace App\Message\Outgoing;
 
 use App\Fruit;
 use App\Message\Outgoing;
+use const App\Message\FruitAdded;
 
 class FruitAdded extends Outgoing
 {

@@ -4,6 +4,12 @@ namespace App;
 
 class Point
 {
+    static public function rand(Point $max, Point $min = null): Point
+    {
+        $min = $min ?? new Point();
+        return new Point(rand($min->getX(), $max->getX()), rand($min->getY(), $max->getY()));
+    }
+
     /** @var int */
     private $x;
     /** @var int $y */

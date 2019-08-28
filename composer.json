@@ -28,7 +28,8 @@
           ]
         },
       "files": [
-        "src/Message/consts.php"
+        "src/Message/consts.php",
+        "lib/Direction/consts.php"
       ]
     }
 }

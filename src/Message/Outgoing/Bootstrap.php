@@ -4,6 +4,7 @@ namespace App\Message\Outgoing;
 
 use App\Game;
 use App\Message\Outgoing;
+use const App\Message\Bootstrap;
 
 class Bootstrap extends Outgoing
 {

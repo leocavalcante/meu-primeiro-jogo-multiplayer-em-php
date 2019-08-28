@@ -3,6 +3,7 @@
 namespace App\Message\Outgoing;
 
 use App\Message\Outgoing;
+use const App\Message\StartCrazyMode;
 
 class StartCrazyMode extends Outgoing
 {

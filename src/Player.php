@@ -2,6 +2,11 @@
 
 namespace App;
 
+use App\Direction\Direction;
+use App\Direction\Down;
+use App\Direction\Left;
+use App\Direction\Right;
+use App\Direction\Up;
 use JsonSerializable;
 
 class Player implements JsonSerializable
@@ -27,34 +32,16 @@ class Player implements JsonSerializable
         $this->position = $position;
     }
 
-    public function move(string $direction): self
+    public function move(Direction $direction): self
     {
-        switch ($direction) {
-            case 'left':
-                if ($this->position->getX() - 1 >= 0) {
-                    $this->position->decX();
-                }
-                break;
-
-            case 'up':
-                if ($this->position->getY() - 1 >= 0) {
-                    $this->position->decY();
-                }
-                break;
-
-            case 'right':
-                if ($this->position->getX() + 1 < $this->game->getWidth()) {
-                    $this->position->incX();
-
-                }
-                break;
-
-            case 'down':
-                if ($this->position->getY() + 1 < $this->game->getHeight()) {
-                    $this->position->incY();
-                }
-                break;
+        if ($this->game->getBounds()->outOfBounds($direction, $this->position)) {
+            return $this;
         }
+
+        if ($direction instanceof Left) $this->position->decX();
+        if ($direction instanceof Up) $this->position->decY();
+        if ($direction instanceof Right) $this->position->incX();
+        if ($direction instanceof Down) $this->position->incY();
 
         return $this;
     }

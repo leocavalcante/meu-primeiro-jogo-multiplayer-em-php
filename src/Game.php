@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Direction\Direction;
 use App\Message\Outgoing;
 use App\Message\Outgoing\Bootstrap;
 use App\Message\Outgoing\FruitAdded;
@@ -21,11 +22,8 @@ class Game
     /** @var int */
     private $maxConnections = 10;
 
-    /** @var int */
-    private $width = 35;
-
-    /** @var int */
-    private $height = 30;
+    /** @var Rect */
+    private $bounds;
 
     /** @var Player[] */
     private $players = [];
@@ -40,6 +38,7 @@ class Game
     {
         $this->server = $server;
         $this->maxConnections = $maxConnections;
+        $this->bounds = new Rect(new Point(), new Point(35, 30));
     }
 
     public function addPlayer(Player $player): self
@@ -68,21 +67,11 @@ class Game
         return $this;
     }
 
-    public function getWidth(): int
-    {
-        return $this->width;
-    }
-
-    public function getHeight(): int
-    {
-        return $this->height;
-    }
-
     public function getState(): array
     {
         return [
-            'canvasWidth' => $this->getWidth(),
-            'canvasHeight' => $this->getHeight(),
+            'canvasWidth' => $this->bounds->getWidth(),
+            'canvasHeight' => $this->bounds->getHeight(),
             'players' => $this->players,
             'fruits' => $this->fruits,
         ];
@@ -101,11 +90,11 @@ class Game
 
     public function onTick()
     {
-        $fruit = $this->addFruit(new Fruit($this->randomPosition()));
+        $fruit = $this->addFruit(new Fruit(Point::rand($this->bounds->getStop())));
         $this->emit(new FruitAdded($fruit));
     }
 
-    public function move(int $playerId, string $direction): self
+    public function move(int $playerId, Direction $direction): self
     {
         $player = $this->getPlayerById($playerId)->move($direction);
         $this->checkForCollisions();
@@ -141,11 +130,6 @@ class Game
         unset($this->fruits[$fruit->getId()]);
     }
 
-    public function randomPosition(): Point
-    {
-        return new Point(rand(0, $this->getWidth()), rand(0, $this->getHeight()));
-    }
-
     public function stop()
     {
         Timer::clear($this->tick);
@@ -178,5 +162,10 @@ class Game
     public function setMaxConnections(int $maxConnections)
     {
         $this->maxConnections = $maxConnections;
+    }
+
+    public function getBounds(): Rect
+    {
+        return $this->bounds;
     }
 }

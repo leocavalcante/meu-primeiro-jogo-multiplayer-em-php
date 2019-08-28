@@ -2,6 +2,10 @@
 
 namespace App;
 
+use App\Direction\Down;
+use App\Direction\Left;
+use App\Direction\Right;
+use App\Direction\Up;
 use App\Message\Decoder;
 use App\Message\Incoming\LetsGoCrazy;
 use App\Message\Incoming\Move;
@@ -21,6 +25,10 @@ use Swoole\Http\Response;
 use Swoole\Server\Port;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
+use const App\Direction\Down;
+use const App\Direction\Left;
+use const App\Direction\Right;
+use const App\Direction\Up;
 
 $basedir = __DIR__ . "/..";
 require_once "$basedir/vendor/autoload.php";
@@ -40,28 +48,37 @@ $game = new Game($server, $max_connections);
 $decoder = new Decoder();
 $resolver = new Resolver();
 
-/**
+/*
  * Arrow functions. We need you!
  */
-$resolver[Move] = function ($payload) {
-    return new Move(strval($payload));
+$resolver[\App\Message\Move] = function ($payload) {
+    switch (strval($payload)) {
+        case Left:
+            return new Move(new Left());
+        case Up:
+            return new Move(new Up());
+        case Right:
+            return new Move(new Right());
+        case Down:
+            return new Move(new Down());
+    }
 };
-$resolver[Start] = function ($payload) {
+$resolver[\App\Message\Start] = function ($payload) {
     return new Start(intval($payload));
 };
-$resolver[Stop] = function () {
+$resolver[\App\Message\Stop] = function () {
     return new Stop();
 };
-$resolver[Restart] = function () {
+$resolver[\App\Message\Restart] = function () {
     return new Restart();
 };
-$resolver[LetsGoCrazy] = function () {
+$resolver[\App\Message\LetsGoCrazy] = function () {
     return new LetsGoCrazy();
 };
-$resolver[StopThisMadness] = function () {
+$resolver[\App\Message\StopThisMadness] = function () {
     return new StopThisMadness();
 };
-$resolver[SetMaxConnections] = function ($payload) {
+$resolver[\App\Message\SetMaxConnections] = function ($payload) {
     return new SetMaxConnections(intval($payload));
 };
 
@@ -71,7 +88,7 @@ $server->on('open', function (Server $server, Request $request) use ($game) {
         return;
     }
 
-    $player = new Player($game, $request->fd, new Point());
+    $player = new Player($game, $request->fd, Point::rand($game->getBounds()->getStop()));
 
     $game
         ->addPlayer($player)
@@ -83,12 +100,12 @@ $server->on('message', function (Server $_, Frame $frame) use ($game, $decoder, 
     $message = $decoder->decode($frame->data);
     $message = $resolver->resolve($message);
 
-    /**
+    /*
      * Brace yourselves!
      * HERE COMES THE POOR MAN'S PATTERN MATCHING
      */
     if ($message instanceof None) {
-        // 404
+        // TODO: Nothing
     }
     if ($message instanceof Just) {
         $message = $message->unwrap();
@@ -102,7 +119,7 @@ $server->on('message', function (Server $_, Frame $frame) use ($game, $decoder, 
     }
 });
 
-$server->on('close', function (Server $server, int $fd) use ($game) {
+$server->on('close', function (Server $_, int $fd) use ($game) {
     $game->removePlayer($fd);
 });
 

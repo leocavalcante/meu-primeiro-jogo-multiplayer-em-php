@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Message;
+
 // Incoming messages
 const Move = 'player-move';
 const Start = 'admin-start-fruit-game';

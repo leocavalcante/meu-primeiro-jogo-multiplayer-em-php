@@ -2,17 +2,19 @@
 
 namespace App\Message\Incoming;
 
+use App\Direction\Direction;
+
 class Move
 {
-    /** @var string */
+    /** @var Direction */
     private $direction;
 
-    public function __construct(string $direction)
+    public function __construct(Direction $direction)
     {
         $this->direction = $direction;
     }
 
-    public function getDirection(): string
+    public function getDirection(): Direction
     {
         return $this->direction;
     }

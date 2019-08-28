@@ -4,6 +4,7 @@ namespace App\Message\Outgoing;
 
 use App\Message\Outgoing;
 use App\Player;
+use const App\Message\PlayerUpdate;
 
 class PlayerUpdate extends Outgoing
 {
