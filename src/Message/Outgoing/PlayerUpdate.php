@@ -1,17 +1,18 @@
 <?php declare(strict_types=1);
 
-namespace App\Message;
+namespace App\Message\Outgoing;
 
+use App\Message\Outgoing;
 use App\Player;
 
-class PlayerUpdate extends OutMessage
+class PlayerUpdate extends Outgoing
 {
     /** @var Player */
     private $player;
 
     public function __construct(Player $player)
     {
-        parent::__construct('player-update');
+        parent::__construct(PlayerUpdate);
         $this->player = $player;
     }
 

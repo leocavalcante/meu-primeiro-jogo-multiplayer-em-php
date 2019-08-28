@@ -43,14 +43,14 @@ class Player implements JsonSerializable
                 break;
 
             case 'right':
-                if ($this->position->getX() + 1 < $this->game->getCanvasWidth()) {
+                if ($this->position->getX() + 1 < $this->game->getWidth()) {
                     $this->position->increaseX();
 
                 }
                 break;
 
             case 'down':
-                if ($this->position->getY() + 1 < $this->game->getCanvasHeight()) {
+                if ($this->position->getY() + 1 < $this->game->getHeight()) {
                     $this->position->increaseY();
                 }
                 break;

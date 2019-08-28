@@ -2,13 +2,14 @@
 
 namespace App;
 
-use App\Message\Bootstrap;
-use App\Message\FruitAdded;
-use App\Message\FruitRemoved;
-use App\Message\OutMessage;
-use App\Message\StartCrazyMode;
-use App\Message\StopCrazyMode;
-use App\Message\UpdatePlayerScore;
+use App\Message\Outgoing;
+use App\Message\Outgoing\Bootstrap;
+use App\Message\Outgoing\FruitAdded;
+use App\Message\Outgoing\FruitRemoved;
+use App\Message\Outgoing\PlayerUpdate;
+use App\Message\Outgoing\StartCrazyMode;
+use App\Message\Outgoing\StopCrazyMode;
+use App\Message\Outgoing\UpdatePlayerScore;
 use Swoole\Timer;
 use Swoole\WebSocket\Server;
 
@@ -21,10 +22,10 @@ class Game
     private $maxConnections = 10;
 
     /** @var int */
-    private $canvasWidth = 35;
+    private $width = 35;
 
     /** @var int */
-    private $canvasHeight = 30;
+    private $height = 30;
 
     /** @var Player[] */
     private $players = [];
@@ -47,12 +48,12 @@ class Game
         return $this;
     }
 
-    public function removePlayer(int $fd)
+    public function removePlayer(int $playerId)
     {
-        unset($this->players[$fd]);
+        unset($this->players[$playerId]);
     }
 
-    public function emit(OutMessage $message, int $broadcast = 0): self
+    public function emit(Outgoing $message, int $broadcast = 0): self
     {
         foreach ($this->server->connections as $connection) {
             if ($connection === $broadcast) {
@@ -67,29 +68,29 @@ class Game
         return $this;
     }
 
-    public function getCanvasWidth(): int
+    public function getWidth(): int
     {
-        return $this->canvasWidth;
+        return $this->width;
     }
 
-    public function getCanvasHeight(): int
+    public function getHeight(): int
     {
-        return $this->canvasHeight;
+        return $this->height;
     }
 
     public function getState(): array
     {
         return [
-            'canvasWidth' => $this->getCanvasWidth(),
-            'canvasHeight' => $this->getCanvasHeight(),
+            'canvasWidth' => $this->getWidth(),
+            'canvasHeight' => $this->getHeight(),
             'players' => $this->players,
             'fruits' => $this->fruits,
         ];
     }
 
-    public function getPlayerById(int $id): Player
+    public function getPlayerById(int $playerId): Player
     {
-        return $this->players[$id];
+        return $this->players[$playerId];
     }
 
     public function start(int $interval)
@@ -100,9 +101,16 @@ class Game
 
     public function onTick()
     {
-        $fruit = new Fruit($this->randomPosition());
-        $this->fruits[$fruit->getId()] = $fruit;
+        $fruit = $this->addFruit(new Fruit($this->randomPosition()));
         $this->emit(new FruitAdded($fruit));
+    }
+
+    public function move(int $playerId, string $direction): self
+    {
+        $player = $this->getPlayerById($playerId)->move($direction);
+        $this->checkForCollisions();
+        $this->emit(new PlayerUpdate($player), $playerId);
+        return $this;
     }
 
     public function checkForCollisions(): self
@@ -122,6 +130,12 @@ class Game
         return $this;
     }
 
+    private function addFruit(Fruit $fruit): Fruit
+    {
+        $this->fruits[$fruit->getId()] = $fruit;
+        return $fruit;
+    }
+
     private function removeFruit(Fruit $fruit)
     {
         unset($this->fruits[$fruit->getId()]);
@@ -129,7 +143,7 @@ class Game
 
     public function randomPosition(): Point2D
     {
-        return new Point2D(rand(0, $this->getCanvasWidth()), rand(0, $this->getCanvasHeight()));
+        return new Point2D(rand(0, $this->getWidth()), rand(0, $this->getHeight()));
     }
 
     public function stop()

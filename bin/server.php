@@ -2,15 +2,19 @@
 
 namespace App;
 
-use App\Message\Bootstrap;
-use App\Message\LetsGoCrazy;
-use App\Message\PlayerMove;
-use App\Message\PlayerUpdate;
-use App\Message\RestartGame;
-use App\Message\SetMaxConnections;
-use App\Message\StartGame;
-use App\Message\StopGame;
-use App\Message\StopThisMadness;
+use App\Message\Decoder;
+use App\Message\Incoming\LetsGoCrazy;
+use App\Message\Incoming\Move;
+use App\Message\Incoming\Restart;
+use App\Message\Incoming\SetMaxConnections;
+use App\Message\Incoming\Start;
+use App\Message\Incoming\Stop;
+use App\Message\Incoming\StopThisMadness;
+use App\Message\Outgoing\Bootstrap;
+use App\Message\Outgoing\PlayerUpdate;
+use App\Message\Resolver;
+use App\Monad\Just;
+use App\Monad\None;
 use Dotenv\Dotenv;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
@@ -33,6 +37,33 @@ $server = new Server('0.0.0.0', $websocket_port);
 $server->set(['worker_num' => 1]);
 
 $game = new Game($server, $max_connections);
+$decoder = new Decoder();
+$resolver = new Resolver();
+
+/**
+ * Arrow functions. We need you!
+ */
+$resolver[Move] = function ($payload) {
+    return new Move(strval($payload));
+};
+$resolver[Start] = function ($payload) {
+    return new Start(intval($payload));
+};
+$resolver[Stop] = function () {
+    return new Stop();
+};
+$resolver[Restart] = function () {
+    return new Restart();
+};
+$resolver[LetsGoCrazy] = function () {
+    return new LetsGoCrazy();
+};
+$resolver[StopThisMadness] = function () {
+    return new StopThisMadness();
+};
+$resolver[SetMaxConnections] = function ($payload) {
+    return new SetMaxConnections(intval($payload));
+};
 
 $server->on('open', function (Server $server, Request $request) use ($game) {
     if (count($server->connections) >= $game->getMaxConnections()) {
@@ -42,47 +73,32 @@ $server->on('open', function (Server $server, Request $request) use ($game) {
 
     $player = new Player($game, $request->fd, new Point2D());
 
-    $game->addPlayer($player)
+    $game
+        ->addPlayer($player)
         ->emit(new Bootstrap($request->fd, $game))
         ->emit(new PlayerUpdate($player), $request->fd);
 });
 
-$server->on('message', function (Server $server, Frame $frame) use ($game) {
-    $message = json_decode($frame->data, true);
+$server->on('message', function (Server $_, Frame $frame) use ($game, $decoder, $resolver) {
+    $message = $decoder->decode($frame->data);
+    $message = $resolver->resolve($message);
 
-    switch ($message['type']) {
-        case PlayerMove::getType():
-            $message = PlayerMove::parse($message);
-            $player = $game->getPlayerById($frame->fd)->move($message->getDirection());
-            $game->checkForCollisions()->emit(new PlayerUpdate($player), $frame->fd);
-            break;
-
-        case StartGame::getType():
-            $message = StartGame::parse($message);
-            $game->start($message->getInterval());
-            break;
-
-        case StopGame::getType():
-            $game->stop();
-            break;
-
-        case RestartGame::getType():
-            $game->restart();
-            break;
-
-        case LetsGoCrazy::getType():
-            $game->letsGoCrazy();
-            break;
-
-        case StopThisMadness::getType():
-            $game->stopThisMadness();
-            break;
-
-        case SetMaxConnections::getType():
-            $message = SetMaxConnections::parse($message);
-            $game->setMaxConnections($message->getValue());
-            break;
-
+    /**
+     * Brace yourselves!
+     * HERE COMES THE POOR MAN'S PATTERN MATCHING
+     */
+    if ($message instanceof None) {
+        // 404
+    }
+    if ($message instanceof Just) {
+        $message = $message->unwrap();
+        if ($message instanceof Move) $game->move($frame->fd, $message->getDirection());
+        if ($message instanceof Start) $game->start($message->getInterval());
+        if ($message instanceof Stop) $game->stop();
+        if ($message instanceof Restart) $game->restart();
+        if ($message instanceof LetsGoCrazy) $game->letsGoCrazy();
+        if ($message instanceof StopThisMadness) $game->stopThisMadness();
+        if ($message instanceof SetMaxConnections) $game->setMaxConnections($message->getMaxConnections());
     }
 });
 

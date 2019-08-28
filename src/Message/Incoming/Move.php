@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace App\Message;
+namespace App\Message\Incoming;
 
-class PlayerMove extends InMessage
+class Move
 {
     /** @var string */
     private $direction;
@@ -10,16 +10,6 @@ class PlayerMove extends InMessage
     public function __construct(string $direction)
     {
         $this->direction = $direction;
-    }
-
-    public static function getType(): string
-    {
-        return 'player-move';
-    }
-
-    public static function parse(array $message): self
-    {
-        return new PlayerMove(strval($message['payload']));
     }
 
     public function getDirection(): string

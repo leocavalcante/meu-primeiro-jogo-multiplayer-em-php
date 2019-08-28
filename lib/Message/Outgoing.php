@@ -4,7 +4,7 @@ namespace App\Message;
 
 use JsonSerializable;
 
-abstract class OutMessage implements JsonSerializable
+abstract class Outgoing implements JsonSerializable
 {
     /** @var string */
     private $type;
