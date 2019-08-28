@@ -5,3 +5,17 @@ Tudo que foi desenvolvido nessa versão é uma tentativa de tradução do reposi
 Muita coisa pode ser melhorada e se fosse feito do zero, provavelmente seria diferente.
 
 Para mais informações, veja esse vídeo: https://www.youtube.com/watch?v=0sTfIZvjYJk
+
+## WTF?
+
+### Por que essas classes vazias?
+Estão simulando data types.
+
+### Aquele monte de `if` com `instanceof`?
+Estão simulando pattern matching.
+
+### Tem uma f\*cking Monad?
+Tem! Só pra não usar `null`.
+
+### Vai usar Haskell, F#, OCaml, ReasonML o carai...
+NÃO! PHP tá no meu coração ❤️
